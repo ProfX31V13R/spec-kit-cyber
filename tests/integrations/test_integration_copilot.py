@@ -145,10 +145,11 @@ class TestCopilotCommandsMode:
         agents_dir = tmp_path / ".github" / "agents"
         assert agents_dir.is_dir()
         agent_files = sorted(agents_dir.glob("speckit.*.agent.md"))
-        assert len(agent_files) == 10
+        assert len(agent_files) == 11
         expected_commands = {
             "analyze", "clarify", "constitution", "converge", "implement",
-            "plan", "checklist", "specify", "tasks", "taskstoissues",
+            "plan", "checklist", "specify", "spec-new-project", "tasks",
+            "taskstoissues",
         }
         actual_commands = {f.name.removeprefix("speckit.").removesuffix(".agent.md") for f in agent_files}
         assert actual_commands == expected_commands
@@ -256,6 +257,7 @@ class TestCopilotCommandsMode:
             ".github/agents/speckit.converge.agent.md",
             ".github/agents/speckit.implement.agent.md",
             ".github/agents/speckit.plan.agent.md",
+            ".github/agents/speckit.spec-new-project.agent.md",
             ".github/agents/speckit.specify.agent.md",
             ".github/agents/speckit.tasks.agent.md",
             ".github/agents/speckit.taskstoissues.agent.md",
@@ -266,6 +268,7 @@ class TestCopilotCommandsMode:
             ".github/prompts/speckit.converge.prompt.md",
             ".github/prompts/speckit.implement.prompt.md",
             ".github/prompts/speckit.plan.prompt.md",
+            ".github/prompts/speckit.spec-new-project.prompt.md",
             ".github/prompts/speckit.specify.prompt.md",
             ".github/prompts/speckit.tasks.prompt.md",
             ".github/prompts/speckit.taskstoissues.prompt.md",
@@ -281,11 +284,17 @@ class TestCopilotCommandsMode:
             ".specify/scripts/bash/resolve-template.sh",
             ".specify/scripts/bash/setup-plan.sh",
             ".specify/scripts/bash/setup-tasks.sh",
+            ".specify/templates/api-security-checklist.md",
             ".specify/templates/checklist-template.md",
             ".specify/templates/constitution-template.md",
+            ".specify/templates/owasp-asvs-checklist.md",
             ".specify/templates/plan-template.md",
+            ".specify/templates/secure-design-review.md",
+            ".specify/templates/security-requirements-template.md",
+            ".specify/templates/security-review-checklist.md",
             ".specify/templates/spec-template.md",
             ".specify/templates/tasks-template.md",
+            ".specify/templates/threat-model-template.md",
             ".specify/memory/.constitution-template.json",
             ".specify/memory/constitution.md",
             ".specify/workflows/speckit/workflow.yml",
@@ -321,6 +330,7 @@ class TestCopilotCommandsMode:
             ".github/agents/speckit.converge.agent.md",
             ".github/agents/speckit.implement.agent.md",
             ".github/agents/speckit.plan.agent.md",
+            ".github/agents/speckit.spec-new-project.agent.md",
             ".github/agents/speckit.specify.agent.md",
             ".github/agents/speckit.tasks.agent.md",
             ".github/agents/speckit.taskstoissues.agent.md",
@@ -331,6 +341,7 @@ class TestCopilotCommandsMode:
             ".github/prompts/speckit.converge.prompt.md",
             ".github/prompts/speckit.implement.prompt.md",
             ".github/prompts/speckit.plan.prompt.md",
+            ".github/prompts/speckit.spec-new-project.prompt.md",
             ".github/prompts/speckit.specify.prompt.md",
             ".github/prompts/speckit.tasks.prompt.md",
             ".github/prompts/speckit.taskstoissues.prompt.md",
@@ -346,11 +357,17 @@ class TestCopilotCommandsMode:
             ".specify/scripts/powershell/resolve-template.ps1",
             ".specify/scripts/powershell/setup-plan.ps1",
             ".specify/scripts/powershell/setup-tasks.ps1",
+            ".specify/templates/api-security-checklist.md",
             ".specify/templates/checklist-template.md",
             ".specify/templates/constitution-template.md",
+            ".specify/templates/owasp-asvs-checklist.md",
             ".specify/templates/plan-template.md",
+            ".specify/templates/secure-design-review.md",
+            ".specify/templates/security-requirements-template.md",
+            ".specify/templates/security-review-checklist.md",
             ".specify/templates/spec-template.md",
             ".specify/templates/tasks-template.md",
+            ".specify/templates/threat-model-template.md",
             ".specify/memory/.constitution-template.json",
             ".specify/memory/constitution.md",
             ".specify/workflows/speckit/workflow.yml",
@@ -366,7 +383,8 @@ class TestCopilotSkillsMode:
 
     _SKILL_COMMANDS = [
         "analyze", "clarify", "constitution", "converge", "implement",
-        "plan", "checklist", "specify", "tasks", "taskstoissues",
+        "plan", "checklist", "specify", "spec-new-project", "tasks",
+        "taskstoissues",
     ]
 
     def _make_copilot(self):
@@ -860,11 +878,17 @@ class TestCopilotSkillsMode:
             ".specify/scripts/bash/setup-plan.sh",
             ".specify/scripts/bash/setup-tasks.sh",
             # Templates
+            ".specify/templates/api-security-checklist.md",
             ".specify/templates/checklist-template.md",
             ".specify/templates/constitution-template.md",
+            ".specify/templates/owasp-asvs-checklist.md",
             ".specify/templates/plan-template.md",
+            ".specify/templates/secure-design-review.md",
+            ".specify/templates/security-requirements-template.md",
+            ".specify/templates/security-review-checklist.md",
             ".specify/templates/spec-template.md",
             ".specify/templates/tasks-template.md",
+            ".specify/templates/threat-model-template.md",
             ".specify/memory/.constitution-template.json",
             ".specify/memory/constitution.md",
             # Bundled workflow

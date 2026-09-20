@@ -220,7 +220,8 @@ class MarkdownIntegrationTests:
 
     COMMAND_STEMS = [
         "analyze", "clarify", "constitution", "converge", "implement",
-        "plan", "checklist", "specify", "tasks", "taskstoissues",
+        "plan", "checklist", "specify", "spec-new-project", "tasks",
+        "taskstoissues",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:
@@ -249,9 +250,14 @@ class MarkdownIntegrationTests:
                          "resolve-template.ps1", "setup-plan.ps1", "setup-tasks.ps1"]:
                 files.append(f".specify/scripts/powershell/{name}")
 
-        for name in ["checklist-template.md",
+        for name in ["api-security-checklist.md",
+                     "checklist-template.md",
                      "constitution-template.md", "plan-template.md",
-                     "spec-template.md", "tasks-template.md"]:
+                     "owasp-asvs-checklist.md", "secure-design-review.md",
+                     "security-requirements-template.md",
+                     "security-review-checklist.md",
+                     "spec-template.md", "tasks-template.md",
+                     "threat-model-template.md"]:
             files.append(f".specify/templates/{name}")
 
         files.append(".specify/memory/.constitution-template.json")

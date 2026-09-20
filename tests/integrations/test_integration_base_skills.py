@@ -95,7 +95,8 @@ class SkillsIntegrationTests:
 
         expected_commands = {
             "analyze", "clarify", "constitution", "converge", "implement",
-            "plan", "checklist", "specify", "tasks", "taskstoissues",
+            "plan", "checklist", "specify", "spec-new-project", "tasks",
+            "taskstoissues",
         }
 
         # Derive command names from the skill directory names
@@ -466,7 +467,8 @@ class SkillsIntegrationTests:
 
     _SKILL_COMMANDS = [
         "analyze", "clarify", "constitution", "converge", "implement",
-        "plan", "checklist", "specify", "tasks", "taskstoissues",
+        "plan", "checklist", "specify", "spec-new-project", "tasks",
+        "taskstoissues",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:
@@ -509,11 +511,17 @@ class SkillsIntegrationTests:
             ]
         # Templates
         files += [
+            ".specify/templates/api-security-checklist.md",
             ".specify/templates/checklist-template.md",
             ".specify/templates/constitution-template.md",
+            ".specify/templates/owasp-asvs-checklist.md",
             ".specify/templates/plan-template.md",
+            ".specify/templates/secure-design-review.md",
+            ".specify/templates/security-requirements-template.md",
+            ".specify/templates/security-review-checklist.md",
             ".specify/templates/spec-template.md",
             ".specify/templates/tasks-template.md",
+            ".specify/templates/threat-model-template.md",
         ]
         # Bundled workflow
         files += [

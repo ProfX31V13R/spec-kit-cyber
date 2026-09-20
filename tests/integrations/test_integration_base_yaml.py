@@ -383,6 +383,7 @@ class YamlIntegrationTests:
         "plan",
         "checklist",
         "specify",
+        "spec-new-project",
         "tasks",
         "taskstoissues",
     ]
@@ -426,11 +427,17 @@ class YamlIntegrationTests:
                 files.append(f".specify/scripts/powershell/{name}")
 
         for name in [
+            "api-security-checklist.md",
             "checklist-template.md",
             "constitution-template.md",
+            "owasp-asvs-checklist.md",
             "plan-template.md",
+            "secure-design-review.md",
+            "security-requirements-template.md",
+            "security-review-checklist.md",
             "spec-template.md",
             "tasks-template.md",
+            "threat-model-template.md",
         ]:
             files.append(f".specify/templates/{name}")
 
