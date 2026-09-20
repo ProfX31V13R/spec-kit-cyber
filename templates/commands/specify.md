@@ -105,6 +105,12 @@ Given that feature description, do this:
      Write the actual resolved directory path value (for example, `specs/003-user-auth`), not the literal string `SPECIFY_FEATURE_DIRECTORY`.
      This allows downstream commands (`__SPECKIT_COMMAND_PLAN__`, `__SPECKIT_COMMAND_TASKS__`, etc.) to locate the feature directory without relying on git branch name conventions.
 
+   **Create the mandatory security artifacts (Security by Design — NOT optional)**:
+   - Resolve the active `security-requirements-template` through the same resolution stack and copy it to `SPECIFY_FEATURE_DIRECTORY/security-requirements.md`
+   - Resolve the active `threat-model-template` through the same resolution stack and copy it to `SPECIFY_FEATURE_DIRECTORY/threat-model.md`
+   - If a security template cannot be resolved through the stack, fall back to `.specify/templates/security-requirements-template.md` / `.specify/templates/threat-model-template.md`; if neither exists, create the artifacts with the mandatory sections defined in the spec template (Security Requirements SR-001..008, Data Classification, Threat Modeling STRIDE, Security Acceptance Criteria)
+   - These artifacts are filled during step 6 alongside the spec itself
+
    **IMPORTANT**:
    - You must only create one feature per `__SPECKIT_COMMAND_SPECIFY__` invocation
    - The spec directory name and the git branch name are independent — they may be the same but that is the user's choice
@@ -132,14 +138,29 @@ Given that feature description, do this:
     5. Generate Functional Requirements
        Each requirement must be testable
        Use reasonable defaults for unspecified details (document assumptions in Assumptions section)
-    6. Define Success Criteria
+    6. Generate Security Requirements (MANDATORY — Security by Design)
+       Fill the Security Requirements section with SR-### requirements covering ALL eight areas: authentication, authorization, session management, data protection, audit, logging, availability, abuse protection
+       For each area either state the requirement or explicitly justify "N/A" — silence is not acceptable
+       Apply secure defaults when unspecified (e.g., deny-by-default authorization, session expiration, rate limiting on public entry points) and document them as assumptions
+    7. Classify the data (MANDATORY)
+       Identify every entity and data flow the feature touches
+       Assign a classification level (Públic/Public, Interno/Internal, Confidencial/Confidential, Restringido/Restricted) with justification and handling requirements
+       Classification drives encryption, logging, and access controls downstream
+    8. Build the initial threat model (MANDATORY)
+       Fill `threat-model.md`: identify assets (from data classification), actors, trust boundaries
+       Apply STRIDE per trust boundary: Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege
+       Assign severity to each threat; summarize top threats in the spec's Threat Modeling section
+    9. Define Security Acceptance Criteria (MANDATORY)
+       Write verifiable SAC-### criteria covering the baseline (input validation, no secrets in code, per-endpoint authorization, encryption of Confidential/Restricted data, security event logging) plus one criterion per High/Critical threat in the threat model
+       Each SAC must be objectively verifiable — vague criteria fail the checklist
+    10. Define Success Criteria
        Create measurable, technology-agnostic outcomes
        Include both quantitative metrics (time, performance, volume) and qualitative measures (user satisfaction, task completion)
        Each criterion must be verifiable without implementation details
-    7. Identify Key Entities (if data involved)
-    8. Return: SUCCESS (spec ready for planning)
+    11. Identify Key Entities (if data involved)
+    12. Return: SUCCESS (spec ready for planning)
 
-7. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings.
+7. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings. In the same pass, write the completed `security-requirements.md` (SR-### requirements in detail, mapped to OWASP ASVS chapters) and `threat-model.md` (assets, actors, trust boundaries, full STRIDE analysis with severities and mitigations). The spec's security sections summarize these artifacts and MUST stay consistent with them.
 
 8. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
 
@@ -176,6 +197,17 @@ Given that feature description, do this:
       - [ ] User scenarios cover primary flows
       - [ ] Feature meets measurable outcomes defined in Success Criteria
       - [ ] No implementation details leak into specification
+
+      ## Security (MANDATORY — a failure here blocks planning)
+
+      - [ ] Security Requirements section addresses all 8 areas (authN, authZ, session, data protection, audit, logging, availability, abuse protection) with SR-### IDs or justified N/A
+      - [ ] Every data entity/flow has a Data Classification (Public/Internal/Confidential/Restricted) with handling requirements
+      - [ ] threat-model.md exists and identifies assets, actors, and trust boundaries
+      - [ ] STRIDE analysis covers each trust boundary with severity per threat
+      - [ ] Every High/Critical threat maps to at least one SAC-### criterion
+      - [ ] security-requirements.md exists and maps SR-### requirements to OWASP ASVS chapters
+      - [ ] Security Acceptance Criteria are objectively verifiable (baseline SAC-001..005 present and adapted)
+      - [ ] Security sections in spec.md are consistent with security-requirements.md and threat-model.md
 
       ## Notes
 
@@ -272,7 +304,8 @@ Check if `.specify/extensions.yml` exists in the project root.
 Report completion to the user with:
 - `SPECIFY_FEATURE_DIRECTORY` — the feature directory path
 - `SPEC_FILE` — the spec file path
-- Checklist results summary
+- Security artifact paths: `security-requirements.md` and `threat-model.md` with a one-line summary of each (count of SR-### requirements, count of STRIDE threats by severity, top risks)
+- Checklist results summary (including the Security section — any unchecked security item MUST be flagged as blocking)
 - Readiness for the next phase (`__SPECKIT_COMMAND_CLARIFY__` or `__SPECKIT_COMMAND_PLAN__`)
 
 **NOTE:** Branch creation is handled by the `before_specify` hook (git extension). Spec directory and file creation are always handled by this core command.
@@ -280,8 +313,9 @@ Report completion to the user with:
 ## Quick Guidelines
 
 - Focus on **WHAT** users need and **WHY**.
+- Security requirements, data classification, threat modeling, and security acceptance criteria are part of **WHAT** — they are mandatory spec content, never deferred to planning or implementation.
 - Avoid HOW to implement (no tech stack, APIs, code structure).
-- Written for business stakeholders, not developers.
+- Written for business stakeholders, not developers — but security criteria may reference verifiable controls (e.g., "encrypted in transit") without prescribing products.
 - DO NOT create any checklists that are embedded in the spec. That will be a separate command.
 
 ### Section Requirements
@@ -311,9 +345,19 @@ When creating this spec from a user prompt:
 
 - Data retention: Industry-standard practices for the domain
 - Performance targets: Standard web/mobile app expectations unless specified
-- Error handling: User-friendly messages with appropriate fallbacks
+- Error handling: User-friendly messages with appropriate fallbacks — never leaking internals, stack traces, or sensitive data
 - Authentication method: Standard session-based or OAuth2 for web apps
 - Integration patterns: Use project-appropriate patterns (REST/GraphQL for web services, function calls for libraries, CLI args for tools, etc.)
+
+**Secure-by-default assumptions** (apply silently, document in Assumptions):
+
+- Authorization is deny-by-default on every operation the feature exposes
+- Sessions expire on inactivity and are invalidated on logout/credential change
+- All user input is untrusted until validated (type, length, format, range)
+- Confidential/Restricted data is encrypted at rest and in transit
+- Public entry points are rate-limited and audited
+- Secrets never appear in code, config templates, logs, or tests
+- Security-relevant events are logged without credentials/PII payloads
 
 ### Success Criteria Guidelines
 

@@ -103,6 +103,86 @@
 - **[Entity 1]**: [What it represents, key attributes without implementation]
 - **[Entity 2]**: [What it represents, relationships to other entities]
 
+## Security Requirements *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Security requirements are NOT optional. Derive them from
+  OWASP ASVS. Every area below MUST be addressed: state the requirement, or
+  explicitly justify why it does not apply (e.g., "N/A — feature has no
+  authentication surface"). "Not specified" is not an acceptable answer.
+  Use SR-### IDs for traceability to plan controls and verification tasks.
+  The detailed working copy lives in security-requirements.md (from the
+  security-requirements-template); this section is the specification summary.
+-->
+
+- **SR-001 Authentication**: [Who must prove identity and how strong it must be, e.g., "All administrative actions REQUIRE authenticated sessions; MFA for privileged operations"]
+- **SR-002 Authorization**: [What each actor may access, deny-by-default, e.g., "Users can only access resources they own; admin roles checked server-side on every action"]
+- **SR-003 Session Management**: [Session creation, expiration, rotation, invalidation rules, e.g., "Sessions expire after inactivity and are invalidated on logout/password change"]
+- **SR-004 Data Protection**: [Confidentiality/integrity rules per data class, e.g., "Confidential and Restricted data encrypted at rest and in transit; sensitive fields never exposed in responses or logs"]
+- **SR-005 Audit**: [Which security-relevant events are recorded immutably, e.g., "Authentication successes/failures, authorization denials, and privilege changes are audited with actor, action, target, timestamp"]
+- **SR-006 Logging**: [What is logged for security events — and what must NEVER be logged (credentials, tokens, PII), e.g., "Security events logged with correlation IDs; secrets and sensitive payloads excluded"]
+- **SR-007 Availability**: [Resilience expectations relevant to the feature, e.g., "The feature degrades gracefully under abnormal load; abusive clients are rate-limited"]
+- **SR-008 Abuse Protection**: [Protections against misuse, e.g., "Rate limiting, input validation, and anti-automation controls on all public entry points"]
+
+## Data Classification *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Classify EVERY data entity the feature touches. The
+  classification drives encryption, logging, retention, and access decisions
+  (see threat model). One row per entity / data flow.
+-->
+
+| Entity / Data Flow | Classification | Justification | Handling Requirements |
+|--------------------|----------------|---------------|----------------------|
+| [e.g., User account record] | [Públic / Internal / Confidential / Restricted] | [Why this level] | [e.g., Encrypted at rest; never in logs; access logged] |
+| [e.g., Public product catalog] | Public | [Non-sensitive reference data] | [Integrity controls only] |
+
+**Classification levels**:
+
+- **Públic / Public**: May be disclosed to anyone. Protect integrity only.
+- **Interno / Internal**: Internal use only; disclosure causes limited harm. Access on need-to-know.
+- **Confidencial / Confidential**: Disclosure causes significant harm (PII, financial data). Encrypted at rest and in transit; strict access control and audit.
+- **Restringido / Restricted**: Severe regulatory/legal/financial impact (credentials, health data, keys). Strongest controls: encryption, minimal access, full audit, rotation.
+
+## Threat Modeling *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Summarize the feature threat model here using STRIDE.
+  The full working model lives in threat-model.md (from the
+  threat-model-template). Every identified risk with severity High or
+  Critical MUST map to at least one Security Acceptance Criterion below.
+-->
+
+**Assets**: [What must be protected — data classes from above, credentials, availability of key flows]
+
+**Actors**: [Who interacts with the feature — anonymous visitors, authenticated users, admins, external services, operators]
+
+**Trust Boundaries**: [Where data/execution crosses a trust change — client→server, service→database, external API→system]
+
+**STRIDE Threats**:
+
+| ID | Threat | STRIDE Category | Asset | Severity | Mitigated By |
+|----|--------|-----------------|-------|----------|--------------|
+| TM-001 | [e.g., Attacker submits crafted input to bypass authorization] | Tampering / Elevation of Privilege | [asset] | [Critical/High/Medium/Low] | [SAC-### / control] |
+| TM-002 | [e.g., Sensitive data exposed in API responses] | Information Disclosure | [asset] | [severity] | [SAC-###] |
+
+## Security Acceptance Criteria *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Security acceptance criteria are verifiable statements.
+  Every feature MUST include at least the baseline criteria below (adapted to
+  the feature) plus any derived from the threat model. They are checked by
+  the Converge security gate before a feature can be closed.
+-->
+
+- **SAC-001**: All inputs are validated (type, length, format, range) before processing.
+- **SAC-002**: No secrets (keys, tokens, passwords, connection strings) exist in source code, configuration templates, or tests.
+- **SAC-003**: Authorization is enforced on every endpoint/operation, server-side, deny-by-default.
+- **SAC-004**: Data classified Confidential or Restricted is encrypted at rest and in transit.
+- **SAC-005**: Security-relevant events (authN success/failure, authZ denials, privilege changes) are logged without sensitive payloads.
+- **SAC-006**: [Threat-model-derived criterion, e.g., "Repeated failed authentication attempts trigger temporary lockout (TM-003)"]
+- **SAC-007**: [Feature-specific criterion, e.g., "Uploads are scanned and size/type-limited before storage"]
+
 ## Success Criteria *(mandatory)*
 
 <!--

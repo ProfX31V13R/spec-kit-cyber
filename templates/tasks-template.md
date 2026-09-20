@@ -9,7 +9,7 @@ description: "Task list template for feature implementation"
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification. **Security tasks are NOT optional** — every story MUST have its Security Tasks section, and the Security Verification & Hardening phase is always generated (derived from SR-###/SAC-### and the threat model).
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -52,6 +52,8 @@ description: "Task list template for feature implementation"
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
+- [ ] T004 [P] Configure security tooling: SAST scanner, dependency vulnerability scanner, and secret scanner (pre-commit and CI)
+- [ ] T005 Configure Secret Manager / environment-based secret injection with no secrets in files (per plan secure-design-review)
 
 ---
 
@@ -63,12 +65,13 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T006 Setup database schema and migrations framework
+- [ ] T007 [P] Implement authentication/authorization framework (deny-by-default, per plan Security Controls Matrix)
+- [ ] T008 [P] Setup API routing and middleware structure with security middleware (validation, rate limiting, security headers)
+- [ ] T009 Create base models/entities that all stories depend on (with data-classification-driven encryption/masking rules)
+- [ ] T010 Configure error handling and logging infrastructure (structured security event logging; no credentials/PII in logs)
+- [ ] T011 Setup environment configuration management with secure defaults
+- [ ] T012 Initialize threat model tracking: link threat-model.md risks to planned controls and verification tasks
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -96,7 +99,21 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T016 [US1] Add validation and error handling
 - [ ] T017 [US1] Add logging for user story 1 operations
 
-**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
+### Security Tasks for User Story 1 (MANDATORY — every story has security tasks)
+
+<!--
+  Security tasks are NOT optional and are generated automatically from the
+  spec's SR-###/SAC-### and the threat model. They are verified by the
+  Converge security gate before the feature can be closed.
+-->
+
+- [ ] T018 [P] [US1] Implement authorization checks (deny-by-default) for every operation/endpooint exposed by this story; cover role/object ownership rules from SR-002
+- [ ] T019 [P] [US1] Implement input validation (type, length, format, range) and output encoding for all user-controlled data in this story's entry points (SAC-001)
+- [ ] T020 [US1] Add authorization tests: authenticated-allowed, authenticated-denied, unauthenticated-denied, and privilege-escalation attempt per test matrix in plan (SAC-003)
+- [ ] T021 [US1] Add security event logging for this story's security-relevant actions (authN/authZ outcomes, denied requests) without sensitive payloads (SR-005/SR-006)
+- [ ] T022 [P] [US1] Run secret scan and dependency vulnerability scan on files touched by this story; fix findings (SAC-002)
+
+**Checkpoint**: At this point, User Story 1 should be fully functional, security-hardened, and testable independently
 
 ---
 
@@ -113,12 +130,19 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T023 [P] [US2] Create [Entity] model in src/models/[entity].py
+- [ ] T024 [US2] Implement [Service] in src/services/[service].py
+- [ ] T025 [US2] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T026 [US2] Integrate with User Story 1 components (if needed)
 
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+### Security Tasks for User Story 2 (MANDATORY)
+
+- [ ] T027 [P] [US2] Authorization checks + tests for this story's operations (deny-by-default)
+- [ ] T028 [P] [US2] Input validation / output encoding + validation tests for this story's entry points
+- [ ] T029 [US2] Security event logging for this story's actions
+- [ ] T030 [P] [US2] Secret/dependency scan on files touched by this story
+
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently (with their security tasks complete)
 
 ---
 
@@ -135,11 +159,18 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T031 [P] [US3] Create [Entity] model in src/models/[entity].py
+- [ ] T032 [US3] Implement [Service] in src/services/[service].py
+- [ ] T033 [US3] Implement [endpoint/feature] in src/[location]/[file].py
 
-**Checkpoint**: All user stories should now be independently functional
+### Security Tasks for User Story 3 (MANDATORY)
+
+- [ ] T034 [P] [US3] Authorization checks + tests for this story's operations (deny-by-default)
+- [ ] T035 [P] [US3] Input validation / output encoding + validation tests for this story's entry points
+- [ ] T036 [US3] Security event logging for this story's actions
+- [ ] T037 [P] [US3] Secret/dependency scan on files touched by this story
+
+**Checkpoint**: All user stories should now be independently functional (with their security tasks complete)
 
 ---
 
@@ -147,7 +178,21 @@ Examples of foundational tasks (adjust based on your project):
 
 ---
 
-## Phase N: Polish & Cross-Cutting Concerns
+## Phase N: Security Verification & Hardening (MANDATORY — before Polish)
+
+**Purpose**: Feature-wide security closure required by the Converge security gate. These tasks produce the evidence the gate checks.
+
+- [ ] TXXX Run SAST on the full codebase; fix all Critical/High findings (SAST report recorded)
+- [ ] TXXX Run secret scanning on the full codebase and git history; ensure zero findings (SAC-002)
+- [ ] TXXX Run dependency vulnerability review; no Critical/High vulnerabilities without approved mitigation
+- [ ] TXXX Update threat-model.md: mark mitigated risks, add newly discovered ones with owners
+- [ ] TXXX Verify RBAC matrix end-to-end: every role × operation combination tested (allow list + deny list)
+- [ ] TXXX Verify auditability: security events reconstructable from logs (who did what, when)
+- [ ] TXXX Complete checklists/owasp-asvs.md and checklists/api-security.md (API features); record evidence per item
+- [ ] TXXX Hardening review: security headers, TLS config, cookie flags, rate limits, error responses, debug endpoints disabled
+- [ ] TXXX Run quickstart.md security validation scenario
+
+## Phase N+1: Polish & Cross-Cutting Concerns
 
 **Purpose**: Improvements that affect multiple user stories
 
@@ -155,7 +200,6 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Code cleanup and refactoring
 - [ ] TXXX Performance optimization across all stories
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
-- [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
 
 ---
@@ -245,7 +289,8 @@ With multiple developers:
 
 - [P] tasks = different files, no dependencies
 - [Story] label maps task to specific user story for traceability
-- Each user story should be independently completable and testable
+- Each user story should be independently completable and testable — including its security tasks
+- Security tasks reference SR-###/SAC-### IDs for end-to-end traceability (spec → control → task → evidence)
 - Verify tests fail before implementing
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently

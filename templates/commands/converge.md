@@ -65,6 +65,11 @@ of remaining work as a new, traceable task** at the bottom of `tasks.md` so that
 `__SPECKIT_COMMAND_IMPLEMENT__` can complete it. This command MUST run only after
 `__SPECKIT_COMMAND_IMPLEMENT__` has run on the current `tasks.md`, and after `__SPECKIT_COMMAND_TASKS__` has produced a complete `tasks.md`.
 
+Convergence is **blocked** by the Security Verification Gate (Step 5b): the feature cannot
+be declared converged while a critical vulnerability, an unmitigated High-severity
+finding, or missing security evidence remains — per the Constitution's Security
+Governance section.
+
 This is **not** a diff tool and does **not** track changes. It assesses the present state
 of the code relative to the feature's artifacts — no git, no branch comparison, no history.
 
@@ -109,6 +114,9 @@ Load only the minimal necessary context from each artifact:
 **From spec.md:**
 
 - Functional Requirements (FR-###)
+- Security Requirements (SR-###) — ALL of them
+- Security Acceptance Criteria (SAC-###) — ALL of them; these feed the Security
+  Verification Gate below
 - Success Criteria (SC-###) — include only items requiring buildable work; exclude
   post-launch outcome metrics and business KPIs
 - User Stories and their Acceptance Scenarios
@@ -120,11 +128,20 @@ Load only the minimal necessary context from each artifact:
 - Data Model references
 - Phases and named touch-points (files/components the plan says will be created or edited)
 - Technical constraints
+- Security Controls Matrix (requirement → control → implementation → test)
+
+**From the feature's security artifacts (if present):**
+
+- `threat-model.md`: STRIDE risks and their status (mitigated/open)
+- `security-requirements.md`: SR-### mapped to OWASP ASVS chapters
+- `secure-design-review.md`: OWASP A01–A10 (and API1–API10) review outcomes
+- `checklists/owasp-asvs.md` and `checklists/api-security.md`: verification state
 
 **From tasks.md:**
 
 - Task IDs (to compute the next ID and next phase number)
-- Descriptions, phase grouping, and referenced file paths
+- Descriptions, phase grouping, and referenced file paths (including Security
+  Tasks subsections and the Security Verification & Hardening phase)
 
 **From constitution (if not an unfilled template):**
 
@@ -134,9 +151,9 @@ Load only the minimal necessary context from each artifact:
 
 Create an internal model (do not echo raw artifacts):
 
-- **Requirements inventory**: one stable key per FR-### / SC-### / user-story acceptance
-  scenario (e.g. `US1/AC2`), plus the plan decisions and constitution principles that
-  impose buildable obligations.
+- **Requirements inventory**: one stable key per FR-### / SR-### / SAC-### / SC-### /
+  user-story acceptance scenario (e.g. `US1/AC2`), plus the plan decisions, Security
+  Controls Matrix rows, and constitution principles that impose buildable obligations.
 - **Code-scope map**: from the file paths named in `plan.md` and `tasks.md`, plus a keyword
   search for the concepts each requirement describes, derive the set of source files and
   components in scope for assessment. Bound the assessment to these — do **not** infer
@@ -173,13 +190,45 @@ severity, and a short human-readable description with the evidence (the file/are
 
 ### 5. Assign Severity
 
-- **CRITICAL**: violates a constitution MUST principle, or a `missing`/`contradicts` gap
-  that blocks baseline functionality of a P1 user story.
-- **HIGH**: a `missing` or `partial` gap on a core functional requirement or acceptance
-  criterion.
+- **CRITICAL**: violates a constitution MUST principle (including security principles
+  I–VI), an unmitigated Critical vulnerability, or a `missing`/`contradicts` gap that
+  blocks baseline functionality of a P1 user story.
+- **HIGH**: an unmitigated High-severity security finding (SAST, dependency, secret,
+  authorization), or a `missing` or `partial` gap on a core functional requirement or
+  acceptance criterion.
 - **MEDIUM**: a `partial` gap on a secondary requirement, or an `unrequested` addition with
   unclear justification.
 - **LOW**: minor partial gaps, polish, or low-risk `unrequested` additions.
+
+### 5b. Run the Security Verification Gate (MANDATORY, blocking)
+
+Assess the codebase against the **Security Verification checklist** derived from the
+spec's SAC-###, the Security Controls Matrix, and the security checklists
+(`checklists/owasp-asvs.md`, `checklists/api-security.md`):
+
+| Verification | Pass Condition | Evidence Source |
+|--------------|----------------|-----------------|
+| SAST | No unresolved Critical/High findings | Scanner report / security tasks evidence |
+| Secret scan | Zero secrets in code (and history, if scanned) | Scanner report |
+| Dependencies | No Critical/High vulnerabilities without approved mitigation | Dependency review |
+| Threat model | Updated: mitigated risks marked, open risks owned | threat-model.md |
+| Logging | Security events auditable, no sensitive payloads in logs | Log inspection/tests |
+| RBAC / Authorization | Every role × operation verified (allow + deny) | Authorization tests/matrix |
+
+**Gate rules (from the Constitution's Security Governance section):**
+
+A feature MUST NOT be reported as `converged` when ANY of:
+
+- an unresolved **critical** vulnerability exists;
+- a **High**-severity vulnerability exists **without an approved, documented mitigation**;
+- **required security evidence is missing** (SAST, secret scan, dependency review,
+  authorization tests, threat-model update).
+
+If any gate condition fails, every failed verification becomes a finding (severity per
+Step 5), enters the table in Step 6, and is appended as a Convergence task in Step 7 —
+the outcome is `tasks_appended`, never `converged`. An explicit, recorded risk
+acceptance by the project owner is the only override and MUST be documented in the
+feature's security review checklist.
 
 ### 6. Present the In-Session Findings Summary
 
@@ -227,17 +276,24 @@ Append to the **end** of `tasks.md`, per the append contract:
 
 **If there are no actionable findings** (`converged` outcome):
 
+- **Precondition**: the Security Verification Gate (Step 5b) MUST pass with every
+  verification evidenced. If any gate condition failed, this branch is not reachable —
+  the findings make the outcome `tasks_appended`.
 - Do **not** modify `tasks.md` at all — no empty phase header.
 - Report: **"✅ Converged — the implementation satisfies the spec, plan, and tasks."**
-- Include the summary counts of what was checked.
+- Include the summary counts of what was checked, and the passed Security Verification
+  table (SAST, secrets, dependencies, threat model, logging, RBAC) as closing evidence.
 
 ### 8. Provide Next Actions (Handoff)
 
 - On `tasks_appended`: state how many tasks were appended under which phase, and recommend
   running `__SPECKIT_COMMAND_IMPLEMENT__` to complete them; note that a follow-up converge
   run will find fewer or no remaining items.
+  - If the Security Verification Gate failed, say so explicitly and list which
+    verifications blocked closure and the evidence required to pass them.
 - On `converged`: recommend proceeding to review / opening a PR. No further implement pass
-  is needed for this feature's specified scope.
+  is needed for this feature's specified scope. Confirm the Security Verification Gate
+  passed.
 
 ### 9. Check for extension hooks
 

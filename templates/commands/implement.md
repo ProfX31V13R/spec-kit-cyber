@@ -89,11 +89,12 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 3. Load and analyze the implementation context:
    - **REQUIRED**: Read tasks.md for the complete task list and execution plan
-   - **REQUIRED**: Read plan.md for tech stack, architecture, and file structure
-   - **IF EXISTS**: Read data-model.md for entities and relationships
-   - **IF EXISTS**: Read contracts/ for API specifications and test requirements
+   - **REQUIRED**: Read plan.md for tech stack, architecture, file structure, AND the Security Controls Matrix (requirement → control → implementation → test)
+   - **REQUIRED**: Read spec.md's Security Requirements (SR-###) and Security Acceptance Criteria (SAC-###) sections, plus threat-model.md if present
+   - **IF EXISTS**: Read data-model.md for entities and relationships (note field-level sensitivity/classification)
+   - **IF EXISTS**: Read contracts/ for API specifications and test requirements (note per-contract authN/authZ/validation rules)
    - **IF EXISTS**: Read research.md for technical decisions and constraints
-   - **IF EXISTS**: Read /memory/constitution.md for governance constraints
+   - **IF EXISTS**: Read /memory/constitution.md for governance constraints (security principles I–VI are NON-NEGOTIABLE)
    - **IF EXISTS**: Read quickstart.md for integration scenarios
 
 4. **Project Setup Verification**:
@@ -151,16 +152,48 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together
    - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
    - **File-based coordination**: Tasks affecting the same files must run sequentially
-   - **Validation checkpoints**: Verify each phase completion before proceeding
+   - **Security tasks are first-class**: execute each story's Security Tasks with the same rigor as functional tasks; a story is NOT complete until its security tasks are done
+   - **Validation checkpoints**: Verify each phase completion before proceeding, including the security checkpoint (see Security Rules below)
 
 7. Implementation execution rules:
-   - **Setup first**: Initialize project structure, dependencies, configuration
+   - **Setup first**: Initialize project structure, dependencies, configuration, security tooling
    - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
    - **Core development**: Implement models, services, CLI commands, endpoints
    - **Integration work**: Database connections, middleware, logging, external services
+   - **Security verification & hardening**: Execute the Security Verification & Hardening phase tasks (SAST, secret scan, dependency review, RBAC validation, hardening) before Polish
    - **Polish and validation**: Unit tests, performance optimization, documentation
 
-8. Progress tracking and error handling:
+8. **Security Rules for Implementation (MANDATORY — Secure Coding, Secrets, Dependencies)**:
+
+   **Secure Coding (every task, aligned with OWASP Proactive Controls)**:
+   - Validate ALL input at trust boundaries: type, length, format, range — before processing (C5)
+   - Sanitize/encode ALL output by context (HTML, URL, SQL, shell, LDAP, XML) to prevent injection (C5)
+   - Use parameterized queries / prepared statements / safe ORMs for every data access — string concatenation into queries is forbidden (C3)
+   - Enforce authorization server-side on EVERY operation, deny-by-default — client-side checks are never sufficient (C7)
+   - Handle errors securely: generic messages to users, details only to logs; never leak stack traces, internals, versions, or sensitive data (C11)
+   - Use modern cryptography only: vetted libraries, current algorithms (e.g., AES-GCM, Argon2/bcrypt/scrypt); never invent custom crypto, never use MD5/SHA1 for security purposes (C8)
+   - Implement anti-automation/rate limiting on public entry points (C12)
+   - Centralize security controls (validation, authZ, encoding) rather than scattering copies
+
+   **Secrets (absolute)**:
+   - NEVER store keys, tokens, passwords, or connection strings in source code, config templates, IaC files, or tests
+   - Secrets come from a Secret Manager or environment injection at runtime
+   - Before reporting ANY task or phase complete, verify no secret patterns were introduced (run the configured secret scanner or inspect diffs)
+   - Credential rotation must be possible without code changes
+
+   **Dependencies**:
+   - Use current, maintained dependency versions from the start; pin via lockfile
+   - Do NOT add dependencies with known Critical/High vulnerabilities (check the dependency scanner; if unavoidable, STOP and report — requires documented, approved mitigation)
+   - Verify dependency integrity (lockfile hashes, trusted registries only)
+
+   **Security checkpoint (end of every phase)**:
+   - Files touched contain no hardcoded secrets
+   - Every new endpoint/operation has server-side authorization
+   - Every new input path validates input
+   - Security events are logged without sensitive payloads
+   - If any checkpoint fails: fix before proceeding — do not defer to Converge
+
+9. Progress tracking and error handling:
    - Report progress after each completed task
    - Halt execution if any non-parallel task fails
    - For parallel tasks [P], continue with successful tasks, report failed ones
@@ -168,11 +201,12 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Suggest next steps if implementation cannot proceed
    - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
 
-9. Completion validation:
-   - Verify all required tasks are completed
+10. Completion validation:
+   - Verify all required tasks are completed (functional AND security tasks)
    - Check that implemented features match the original specification
    - Validate that tests pass and coverage meets requirements
-   - Confirm the implementation follows the technical plan
+   - Confirm the implementation follows the technical plan and the Security Controls Matrix
+   - Confirm every SAC-### has corresponding verification evidence (tests, scans, checklist items)
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `__SPECKIT_COMMAND_TASKS__` first to regenerate the task list.
 
@@ -216,7 +250,9 @@ Report final status with summary of completed work.
 
 ## Done When
 
-- [ ] All tasks in tasks.md completed and marked `[X]`
-- [ ] Implementation validated against specification, plan, and test coverage
+- [ ] All tasks in tasks.md completed and marked `[X]` (functional AND security tasks)
+- [ ] Security Rules for Implementation respected (secure coding, secrets, dependencies) with the security checkpoint passed at every phase
+- [ ] Implementation validated against specification, plan, Security Controls Matrix, and test coverage
+- [ ] Every SAC-### has verification evidence
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with summary of completed work

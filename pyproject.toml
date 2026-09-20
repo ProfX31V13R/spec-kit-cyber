@@ -35,6 +35,13 @@ packages = ["src/specify_cli"]
 "templates/spec-template.md" = "specify_cli/core_pack/templates/spec-template.md"
 "templates/tasks-template.md" = "specify_cli/core_pack/templates/tasks-template.md"
 "templates/vscode-settings.json" = "specify_cli/core_pack/templates/vscode-settings.json"
+# Security by Design artifact templates (resolved like spec-template via the template stack)
+"templates/security-requirements-template.md" = "specify_cli/core_pack/templates/security-requirements-template.md"
+"templates/threat-model-template.md" = "specify_cli/core_pack/templates/threat-model-template.md"
+"templates/security-review-checklist.md" = "specify_cli/core_pack/templates/security-review-checklist.md"
+"templates/secure-design-review.md" = "specify_cli/core_pack/templates/secure-design-review.md"
+"templates/owasp-asvs-checklist.md" = "specify_cli/core_pack/templates/owasp-asvs-checklist.md"
+"templates/api-security-checklist.md" = "specify_cli/core_pack/templates/api-security-checklist.md"
 # Command templates
 "templates/commands" = "specify_cli/core_pack/commands"
 "scripts/bash" = "specify_cli/core_pack/scripts/bash"

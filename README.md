@@ -93,8 +93,61 @@ quality gates.
 [SDD walkthrough](https://github.github.io/spec-kit/quickstart.html) ·
 [Command reference](https://github.github.io/spec-kit/reference/agentic-sdd.html)
 
+<a id="security-by-design"></a>
+<a id="-security-by-design-secure-by-default"></a>
+
+## Security by Design (Secure by Default)
+
+This fork of Spec Kit makes cybersecurity **implicit and mandatory** in every
+phase of the SDD flow. Security cannot be skipped, deferred, or made optional:
+each command enforces its controls and the flow is **blocked** if they fail.
+Standards: **OWASP ASVS** (primary), **OWASP Top 10** and **OWASP API Security
+Top 10** (verification), **OWASP Proactive Controls** (implementation), aligned
+with **NIST SSDF**.
+
+### One command, whole flow, security built in
+
+Describe your feature once and the guided flow runs Specify → Plan → Tasks →
+Implement → Converge, pausing at each gate for your approval — with the
+security work always included:
+
+```text
+/speckit-spec-new-project Build a multi-tenant invoicing API with Stripe payments and an admin dashboard.
+```
+
+(The invocation prefix depends on your agent — `/speckit:spec-new-project`,
+`/speckit.spec-new-project`, or the skills-mode `/speckit-spec-new-project`.)
+
+Each gate shows you the spec/plan/tasks **plus a mandatory security summary**
+(SR requirements, data classification, STRIDE threats, controls coverage,
+OWASP review status). You approve, revise, or stop — the flow is user-guided.
+Append `--auto` to run without pauses; **security gates stay blocking anyway**.
+
+### What is enforced in each phase
+
+| Phase | Mandatory security controls (never optional) |
+| --- | --- |
+| Constitution | Principles I–VI: Security by Design, Least Privilege, Secure Default Configuration, Defense in Depth, Zero Trust, Traceability + Security Governance (blocking gate) |
+| Specify | Security Requirements (SR-###, 8 areas: authN, authZ, sessions, data protection, audit, logging, availability, abuse), Data Classification (Public/Internal/Confidential/Restricted), Threat Model (STRIDE per trust boundary), Security Acceptance Criteria (SAC-###) → artifacts `security-requirements.md` + `threat-model.md`; spec quality checklist gains a blocking Security section |
+| Plan | Security Architecture Review (architecture, dependencies, external integrations, secrets), Security Controls Matrix (Requirement → Control → Implementation → Test), OWASP Top 10 review A01–A10 (+ API1–API10 for APIs) → artifacts `secure-design-review.md`, `checklists/owasp-asvs.md`, `checklists/api-security.md`; ERROR if a High/Critical threat lacks a mitigation |
+| Tasks | Every user story gets an automatic Security Tasks subsection (authorization + tests, validation + tests, security logging, secret/dependency scans); feature-wide Security Verification & Hardening phase before Polish (SAST, secret scan, dependency review, RBAC validation, threat model update, hardening) |
+| Implement | Secure Coding rules (validate all input, contextual output encoding, parameterized queries, server-side deny-by-default authZ, secure error handling, modern crypto), absolute Secrets rules (never in code; Secret Manager; rotation), Dependency rules (pinned, no Critical/High), per-phase security checkpoint |
+| Converge | Security Verification Gate (blocking): SAST without critical findings, secret scan clean, dependencies reviewed, threat model updated, auditable logs, RBAC validated. A feature cannot be reported converged while a critical vulnerability, an unmitigated High finding, or missing evidence remains |
+
+### End-to-end traceability
+
+Every security requirement is traceable across the whole flow (Constitution
+Principle VI):
+
+```text
+SR-### / SAC-### (spec)  →  Control + location (plan matrix)  →  Task T### (tasks.md)  →  Evidence (scans, tests, checklists at converge)
+```
+
+Full details, per-control justification, and usage examples:
+[SECURITY-BY-DESIGN.md](SECURITY-BY-DESIGN.md)
+
 <a id="-bug-fixing-with-spec-kit"></a>
-<a id="bug-fix-quickstart"></a>
+<a id="bug-quickstart"></a>
 
 ## Bug fixing
 

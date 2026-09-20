@@ -431,12 +431,12 @@ schema_version: "1.0"
 workflow:
   id: "speckit"
   name: "Full SDD Cycle"
-  version: "1.0.1"
+  version: "1.1.0"
   author: "GitHub"
-  description: "Runs specify → plan → tasks → implement with review gates"
+  description: "Runs specify → plan → tasks → implement → converge with review gates and Security by Design"
 
 requires:
-  speckit_version: ">=0.8.5"
+  speckit_version: ">=0.9.0"
   integrations:
     any:
       - "alquimia"
@@ -464,7 +464,7 @@ steps:
 
   - id: review-spec
     type: gate
-    message: "Review the generated spec before planning."
+    message: "Review the generated spec (including the security requirements, data classification, and threat model) before planning."
     options: [approve, reject]
     on_reject: abort
 
@@ -476,7 +476,7 @@ steps:
 
   - id: review-plan
     type: gate
-    message: "Review the plan before generating tasks."
+    message: "Review the plan (including the security architecture review, controls matrix, and OWASP review) before generating tasks."
     options: [approve, reject]
     on_reject: abort
 
@@ -488,6 +488,12 @@ steps:
 
   - id: implement
     command: speckit.implement
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
+
+  - id: converge
+    command: speckit.converge
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.spec }}"
@@ -504,6 +510,7 @@ flowchart TB
     D -- approve --> E["tasks<br/>(command)"]
     D -- reject --> X2["⏹ Abort"]
     E --> F["implement<br/>(command)"]
+    F --> G["converge<br/>(command)"]
 
     style A fill:#49a,color:#fff
     style B fill:#a94,color:#fff
@@ -511,6 +518,7 @@ flowchart TB
     style D fill:#a94,color:#fff
     style E fill:#49a,color:#fff
     style F fill:#49a,color:#fff
+    style G fill:#49a,color:#fff
     style X1 fill:#999,color:#fff
     style X2 fill:#999,color:#fff
 ```

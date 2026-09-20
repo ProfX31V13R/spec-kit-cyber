@@ -24,6 +24,7 @@ skills by default.
 
 | Command | Agent skill | Purpose |
 | --- | --- | --- |
+| `/speckit.spec-new-project` | `speckit-spec-new-project` | **Guided end-to-end flow in one command** — constitution readiness, specify, plan, tasks, implement, converge, with user gates and Security by Design built in (never optional) |
 | `/speckit.constitution` | `speckit-constitution` | Establish or update project principles |
 | `/speckit.specify` | `speckit-specify` | Define requirements and user stories |
 | `/speckit.plan` | `speckit-plan` | Create the technical implementation plan |
@@ -34,6 +35,24 @@ skills by default.
 | `/speckit.clarify` | `speckit-clarify` | Resolve ambiguity before planning (optional quality gate; formerly `/quizme`) |
 | `/speckit.analyze` | `speckit-analyze` | Check artifact consistency after tasks and before implementation (optional quality gate) |
 | `/speckit.checklist` | `speckit-checklist` | Generate requirements-quality checklists (optional quality gate) |
+
+## `/speckit.spec-new-project`
+
+Runs the complete lifecycle from a single prompt: checks constitution readiness
+(the security baseline of principles I–VI must be ratified), then dispatches
+`specify → plan → tasks → implement → converge` in order, pausing at each gate
+for your approval (append `--auto` to skip pauses — security gates stay
+blocking). Every gate presents the phase result **plus a mandatory security
+summary** (SR requirements, data classification, STRIDE threats, controls
+coverage, OWASP review status). The command is resumable: if a phase's outputs
+already exist it offers to continue from the next one.
+
+```text
+/speckit.spec-new-project Build a multi-tenant invoicing API with Stripe payments and an admin dashboard.
+```
+
+The per-phase security controls it enforces are described in
+[SECURITY-BY-DESIGN.md](https://github.com/github/spec-kit/blob/main/SECURITY-BY-DESIGN.md).
 
 ## `/speckit.constitution`
 

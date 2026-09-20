@@ -51,6 +51,7 @@ _CORE_COMMAND_TEMPLATE_ORDER = (
     "plan",
     "checklist",
     "specify",
+    "spec-new-project",
     "tasks",
     "taskstoissues",
 )
