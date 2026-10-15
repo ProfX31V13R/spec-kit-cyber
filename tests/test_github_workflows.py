@@ -774,7 +774,7 @@ def test_bug_test_workflow_provisions_python_dependencies():
     positions = [names.index(name) for name in expected_names]
     assert positions == sorted(positions)
     assert _workflow_step(steps, "Setup uv")["uses"] == (
-        "astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d"
+        "astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4"
     )
     python_step = _workflow_step(steps, "Set up Python")
     assert python_step["uses"] == (
